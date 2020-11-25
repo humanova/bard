@@ -1,0 +1,5 @@
+{
+  "PostDirectory" : "path/to/posts",
+  "ListenPrefixPath" : "/test",
+  "Port" : 4001
+}
