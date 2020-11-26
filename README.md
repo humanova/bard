@@ -2,7 +2,11 @@
 
 Bard is a simple blog management system to create, update, delete and view *markdown* files.
 
+## Demo
+
 ![demo](media/demo.gif)
+
+## API Endpoints
 
 ### */cms* : **GET**
 ```
