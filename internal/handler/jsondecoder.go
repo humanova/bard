@@ -1,7 +1,7 @@
 // (c) 2020 Emir Erbasan (humanova)
 // MIT License, see LICENSE for more details
 
-package main
+package handler
 
 import (
 	"encoding/json"

@@ -4,35 +4,32 @@
 package main
 
 import (
+	"bard/config"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/tkanos/gonfig"
+	"bard/internal/handler"
 	"log"
 	"net/http"
 )
 
-type Config struct {
-	PostDirectory    string
-	ListenPrefixPath string
-	Port             string
-}
-
 func main() {
-	var config Config
-	err := gonfig.GetConf("./config.json", &config)
+	var conf config.Config
+
+	err := config.GetConfig("./config.json", &conf)
 	if err != nil {
 		panic(err)
 	}
+
 	r := mux.NewRouter()
-	cmsRouter := r.PathPrefix(config.ListenPrefixPath).Subrouter()
+	cmsRouter := r.PathPrefix(conf.ListenPrefixPath).Subrouter()
 
-	cmsRouter.HandleFunc("/create_post", config.createPostHandler).Methods("POST")
-	cmsRouter.HandleFunc("/update_post", config.updatePostHandler).Methods("POST")
-	cmsRouter.HandleFunc("/delete_post", config.deletePostHandler).Methods("POST")
-	cmsRouter.HandleFunc("/cms", config.cmsHandler).Methods("GET")
+	cmsRouter.HandleFunc("/create_post", handler.CreatePostHandler(conf)).Methods("POST")
+	cmsRouter.HandleFunc("/update_post", handler.UpdatePostHandler(conf)).Methods("POST")
+	cmsRouter.HandleFunc("/delete_post", handler.DeletePostHandler(conf)).Methods("POST")
+	cmsRouter.HandleFunc("/cms", handler.CmsHandler(conf)).Methods("GET")
 
-	addr := fmt.Sprintf(":%s", config.Port)
-	fmt.Printf("Starting the server on %s\n", fmt.Sprintf("%s%s", addr, config.ListenPrefixPath))
+	addr := fmt.Sprintf(":%s", conf.Port)
+	fmt.Printf("Starting the server on %s\n", fmt.Sprintf("%s%s", addr, conf.ListenPrefixPath))
 
 	err = http.ListenAndServe(addr, cmsRouter)
 	log.Fatal(err)
