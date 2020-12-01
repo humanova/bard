@@ -1,0 +1,28 @@
+{{define "index_content"}}
+
+    {{template "posts" .}}
+    <br>
+    <div class="text-center">
+        <button class="btn btn-primary btn-md" id="show-new-post" data-toggle="collapse"
+                data-target="#new-post-div">Create New Post
+        </button>
+    </div>
+    <br>
+    <div id="new-post-div" class="collapsing">
+        <h3 style="margin: 2%;text-align:center">New post</h3>
+        <form>
+            <div class="form-group">
+                <input autocomplete="off" type="text" class="form-control" name="new-post-title" id="new-post-title"
+                       placeholder="Post title" required>
+                <br>
+            </div>
+        </form>
+        <textarea id="editor"></textarea>
+        <div class="form-group">
+            <p><a id="result" href=""> </a></p>
+            <input class="btn btn-primary btn-lg float-right" id="gen-button" type="submit" value="Create new post">
+        </div>
+    </div>
+
+    {{template "response_modal"}}
+{{end}}

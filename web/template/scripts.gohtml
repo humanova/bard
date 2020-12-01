@@ -1,0 +1,93 @@
+{{define "scripts"}}
+    <script>
+        let api_base = {{.APIPath}};
+
+        function redir_update_post(filename) {
+            document.location = 'cms?update_post=' + filename.split(".")[0];
+        };
+
+        var simplemde = new SimpleMDE({
+            element: document.getElementById("editor"),
+            spellChecker: false,
+            {{if eq .Page "update_post"}}
+            initialValue: "{{(index .Posts 0).Text}}"
+            {{end}}
+        });
+
+        function send_request(url, data, description)
+        {
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                resp_msg_p = document.getElementById("resp-msg")
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    resp_msg_p.innerText = description + " successful"
+                    $('#responseModal').modal('show')
+
+                } else {
+                    resp_msg_p.innerText = description + " unsuccessful"
+                    $('#responseModal').modal('show')
+                }
+            };
+            xhr.send(JSON.stringify(data))
+        }
+    </script>
+
+    {{if eq .Page "index"}}>
+        <script>
+            (function () {
+                let gen_button = document.getElementById("gen-button"),
+                    new_post_title = document.getElementById("new-post-title");
+
+                gen_button.onclick = function () {
+                    const config_dict = {
+                        title: new_post_title.value,
+                        text: simplemde.value(),
+                    };
+                    send_request(api_base + "/create_post", config_dict, "Create post ("+config_dict.title+")")
+
+                    setTimeout(function () {
+                        window.location.reload(1);
+                    }, 2000);
+                }
+
+            })();
+        </script>
+    {{else if eq .Page "update_post"}}
+        <script>
+            (function () {
+
+                let gen_button = document.getElementById("gen-button");
+                post_filename = {{(index .Posts 0).Filename}};
+                post_title = document.getElementById("post-title");
+
+                gen_button.onclick = function () {
+                    const config_dict = {
+                        title: post_title.value,
+                        text: simplemde.value(),
+                        filename: post_filename.split(".")[0],
+                    };
+                    send_request(api_base+"/update_post", config_dict, "Update")
+
+                    setTimeout(function () {
+                        window.location.reload(1);
+                    }, 2000);
+                };
+
+                let delete_button = document.getElementById("delete-button");
+                delete_button.onclick = function () {
+                    const config_dict = {
+                        filename: post_filename.split(".")[0],
+                    };
+                    send_request(api_base+"/delete_post", config_dict, "Delete")
+
+                    setTimeout(function () {
+                        document.location = 'cms';
+                    }, 2000);
+                };
+
+            })();
+        </script>
+    {{end}}
+{{end}}

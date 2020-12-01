@@ -1,0 +1,21 @@
+{{define "posts"}}
+    <h2>Posts</h2>
+    <table id="posts-table" style="table-layout: fixed;" class="table table-hover text-truncate">
+        <thead>
+        <tr>
+            <th>Filename</th>
+            <th>Title</th>
+            <th>Content</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .}}
+            <tr style="cursor: pointer;" onclick="redir_update_post({{.Filename}})">
+                <td>{{.Filename}}</td>
+                <td>{{.Title}}</td>
+                <td>{{.Text}}</td>
+            </tr>
+        {{end}}
+        </tbody>
+    </table>
+{{end}}

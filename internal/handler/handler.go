@@ -14,6 +14,7 @@ import (
 
 type CmsPageData struct {
 	Posts   []post.Data
+	Page    string
 	APIPath string
 }
 
@@ -29,9 +30,10 @@ func CreatePostHandler(conf config.Config) http.HandlerFunc {
 		var p post.NewData
 		getJSONRequestData(w, r, &p)
 
-		filename := fmt.Sprintf("%s/%s.md", conf.PostDirectory, sanitize.Path(p.Title))
+		filename :=  sanitize.Path(fmt.Sprintf("%s.md",p.Title))
+		path := fmt.Sprintf("%s/%s", conf.PostDirectory, filename)
 
-		err := post.CreatePost(filename, p.Title, p.Text)
+		err := post.CreatePost(path, p.Title, p.Text)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("couldn't create file : %s", filename),
 				http.StatusInternalServerError)
@@ -49,9 +51,10 @@ func UpdatePostHandler(conf config.Config) http.HandlerFunc {
 		var p post.Data
 		getJSONRequestData(w, r, &p)
 
-		filename := fmt.Sprintf("%s/%s.md", conf.PostDirectory, sanitize.Path(p.Filename))
+		filename := sanitize.Path(fmt.Sprintf("%s.md",p.Filename))
+		path := fmt.Sprintf("%s/%s", conf.PostDirectory, filename)
 
-		err := post.UpdatePost(filename, p.Title, p.Text)
+		err := post.UpdatePost(path, p.Title, p.Text)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("couldn't update file : %s", p.Filename),
 				http.StatusInternalServerError)
@@ -69,9 +72,10 @@ func DeletePostHandler(conf config.Config) http.HandlerFunc {
 		var p post.DeleteData
 		getJSONRequestData(w, r, &p)
 
-		filename := fmt.Sprintf("%s/%s.md", conf.PostDirectory, sanitize.Path(p.Filename))
+		filename := sanitize.Path(fmt.Sprintf("%s.md",p.Filename))
+		path := fmt.Sprintf("%s/%s", conf.PostDirectory, filename)
 
-		err := post.RemovePost(filename)
+		err := post.RemovePost(path)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("couldn't delete file : %s", p.Filename),
 				http.StatusInternalServerError)
@@ -84,13 +88,19 @@ func DeletePostHandler(conf config.Config) http.HandlerFunc {
 	}
 }
 
+// TODO : handle multiple templates (templ withing templ etc.)
 func CmsHandler(conf config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 		updatePostFilename := query.Get("update_post")
 
 		var data CmsPageData
-		var tpl *template.Template
+		tpl, err := template.ParseGlob("web/template/*.gohtml")
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError)
+			return
+		}
 
 		if updatePostFilename == "" {
 			posts, err := post.GetPosts(conf.PostDirectory)
@@ -99,8 +109,7 @@ func CmsHandler(conf config.Config) http.HandlerFunc {
 					http.StatusInternalServerError)
 				return
 			}
-			data = CmsPageData{posts, conf.ListenPrefixPath}
-			tpl = template.Must(template.ParseFiles("web/template/cms.gohtml"))
+			data = CmsPageData{posts, "index", conf.ListenPrefixPath}
 
 		} else {
 			_post, err := post.GetPost(fmt.Sprintf("%s.md", updatePostFilename), conf.PostDirectory)
@@ -109,11 +118,10 @@ func CmsHandler(conf config.Config) http.HandlerFunc {
 					http.StatusInternalServerError)
 				return
 			}
-			data = CmsPageData{[]post.Data{_post}, conf.ListenPrefixPath}
-			tpl = template.Must(template.ParseFiles("web/template/cms_update.gohtml"))
+			data = CmsPageData{[]post.Data{_post}, "update_post", conf.ListenPrefixPath}
 		}
 
-		tpl.Execute(w, data)
+		tpl.ExecuteTemplate(w, "cms.gohtml", data)
 		return
 	}
 }

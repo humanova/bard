@@ -1,149 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="author" content="humanova"/>
-    <title>bard blog-cms</title>
-    <meta type="description" content="blog cms system">
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
-
+    {{template "head"}}
 </head>
 <body>
 <br>
-
 <div class="row">
     <div class="col-md-3">
     </div>
     <div class="col-md-6">
         <h1 style="text-align:center">bard cms</h1>
-
-        <h2>Posts</h2>
-        <table id="posts-table" style="table-layout: fixed;" class="table table-hover text-truncate">
-            <thead>
-            <tr>
-                <th>Filename</th>
-                <th>Title</th>
-                <th>Content</th>
-            </tr>
-            </thead>
-            <tbody>
-            {{range .Posts}}
-                <tr style="cursor: pointer;" onclick="redir_update_post({{.Filename}})">
-                    <td>{{.Filename}}</td>
-                    <td>{{.Title}}</td>
-                    <td>{{.Text}}</td>
-                </tr>
-            {{end}}
-            </tbody>
-        </table>
-
         <br>
-        <div class="text-center">
-            <button class="btn btn-primary btn-md" id="show-new-post" data-toggle="collapse"
-                    data-target="#new-post-div">Create New Post
-            </button>
-        </div>
-
-        <br>
-        <div id="new-post-div" class="collapsing">
-            <h3 style="margin: 2%;text-align:center">New post</h3>
-            <form>
-                <div class="form-group">
-                    <input autocomplete="off" type="text" class="form-control" name="new-post-title" id="new-post-title"
-                           placeholder="Post title" required>
-                    <br>
-                </div>
-            </form>
-            <textarea id="editor"></textarea>
-            <div class="form-group">
-                <p><a id="result" href=""> </a></p>
-                <input class="btn btn-primary btn-lg float-right" id="gen-button" type="submit" value="Create new post">
-            </div>
-        </div>
-
-        <div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="responseModalLabel">Response</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p id="resp-msg"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {{if eq .Page "index"}}
+            {{template "index_content" .Posts}}
+        {{else if eq .Page "update_post"}}
+            {{template "update_content" (index .Posts 0)}}
+        {{end}}
     </div>
     <br>
     <div class="col-md-3"></div>
 </div>
-<script>
-    var simplemde = new SimpleMDE({
-        element: document.getElementById("editor"),
-        spellChecker: false
-    });
-</script>
-<script>
-    (function () {
-        let api_base = {{.APIPath}};
-
-        let gen_button = document.getElementById("gen-button"),
-            new_post_title = document.getElementById("new-post-title");
-
-        gen_button.onclick = function () {
-            const config_dict = {
-                title: new_post_title.value,
-                text: simplemde.value(),
-            };
-
-            let url = api_base + "/create_post";
-            let xhr = new XMLHttpRequest();
-            xhr.open("POST", url, true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onreadystatechange = function () {
-                let resp_msg_p = document.getElementById("resp-msg")
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    resp_msg_p.innerText = "Succesfully created post : " + config_dict['title']
-                    $('#responseModal').modal('show')
-
-                } else {
-                    resp_msg_p.innerText = "Couldn't create post : " + config_dict['title']
-                    $('#responseModal').modal('show')
-                }
-                setTimeout(function () {
-                    window.location.reload(1);
-                }, 2000);
-            };
-            xhr.send(JSON.stringify(config_dict))
-        };
-
-    })();
-</script>
-<script>
-    function redir_update_post(filename) {
-        document.location = 'cms?update_post=' + filename.split(".")[0];
-    };
-</script>
+{{template "response_modal"}}
+{{template "scripts" .}}
 </body>
-<footer class="container-fluid bg-4 text-center">
-    <a href="https://github.com/humanova/bard">GitHub</a><br>
-    <p>© 2020 humanova</p>
-</footer>
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script>
+{{template "footer"}}
 </html>

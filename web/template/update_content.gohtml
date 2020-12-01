@@ -1,0 +1,16 @@
+{{define "update_content"}}
+    <h3 style="margin-bottom: 2%">Edit post : {{.Filename}}</h3>
+    <form>
+        <div class="form-group">
+            <input autocomplete="off" type="text" value="{{.Title}}" class="form-control"
+                   name="post-title" id="post-title" placeholder="Post title" required>
+            <br>
+        </div>
+    </form>
+    <textarea id="editor"></textarea>
+
+    <div class="form-group">
+        <input class="btn btn-primary btn-lg float-right" id="gen-button" type="submit" value="Update post">
+        <input class="btn btn-danger btn-lg float-left" id="delete-button" type="submit" value="Delete post">
+    </div>
+{{end}}
